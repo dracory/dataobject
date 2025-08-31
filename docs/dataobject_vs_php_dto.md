@@ -206,7 +206,7 @@ final class UserDTO implements JsonSerializable
 package models
 
 import (
-    "github.com/gouniverse/dataobject"
+    "github.com/dracory/dataobject"
     "github.com/gouniverse/uid"
 )
 

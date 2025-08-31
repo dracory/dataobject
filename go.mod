@@ -1,4 +1,4 @@
-module github.com/gouniverse/dataobject
+module github.com/dracory/dataobject
 
 go 1.22
 

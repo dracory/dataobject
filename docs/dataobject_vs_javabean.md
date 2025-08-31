@@ -123,7 +123,7 @@ public class User implements Serializable {
 package models
 
 import (
-    "github.com/gouniverse/dataobject"
+    "github.com/dracory/dataobject"
     "github.com/gouniverse/uid"
 )
 

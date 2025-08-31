@@ -340,7 +340,7 @@ func (u *User) ToMap() map[string]string {
 package models
 
 import (
-    "github.com/gouniverse/dataobject"
+    "github.com/dracory/dataobject"
     "github.com/gouniverse/uid"
     "time"
 )

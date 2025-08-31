@@ -1,6 +1,6 @@
 <img src="image.jpg" width="100%" />
 
-# Data Object <a href="https://gitpod.io/#https://github.com/gouniverse/dataobject" style="float:right:"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
+# Data Object <a href="https://gitpod.io/#https://github.com/dracory/dataobject" style="float:right:"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
 
 A data object is a special purpose structure that is designed
 to hold data and track the changes to allow efficient 
@@ -49,7 +49,7 @@ Optional ORM-like relationship methods are also included. Use these with caution
 package models
 
 import (
-	"github.com/gouniverse/dataobject"
+	"github.com/dracory/dataobject"
 	"github.com/gouniverse/uid"
 	"github.com/golang-module/carbon/v2"
 )
@@ -346,4 +346,4 @@ user.Get("first_name")
 To install the package, run the following command:
 
 ```bash
-go get github.com/gouniverse/dataobject
+go get github.com/dracory/dataobject
