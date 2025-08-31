@@ -50,7 +50,7 @@ package models
 
 import (
 	"github.com/dracory/dataobject"
-	"github.com/gouniverse/uid"
+	"github.com/dracory/uid"
 	"github.com/golang-module/carbon/v2"
 )
 

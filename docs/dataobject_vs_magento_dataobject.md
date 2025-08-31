@@ -178,7 +178,7 @@ package dataobject
 
 import (
     "encoding/json"
-    "github.com/gouniverse/uid"
+    "github.com/dracory/uid"
 )
 
 // DataObject represents a data container with change tracking

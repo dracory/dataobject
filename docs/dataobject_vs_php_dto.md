@@ -207,7 +207,7 @@ package models
 
 import (
     "github.com/dracory/dataobject"
-    "github.com/gouniverse/uid"
+    "github.com/dracory/uid"
 )
 
 // User is a data object
