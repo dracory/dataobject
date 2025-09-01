@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/gouniverse/uid"
+	"github.com/dracory/uid"
 )
 
 // generateID generates a new ID for a data object
