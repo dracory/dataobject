@@ -33,11 +33,11 @@ DataObject is designed for efficient serialization to data stores and to track c
 | Feature | Java Bean | DataObject |
 |---------|-----------|------------|
 | **Language** | Java | Go |
-| **Default Constructor** | Required | Provided via `New()` |
+| **Default Constructor** | Required | Provided via `New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()` |
 | **Property Access** | Via getters/setters | Via getters/setters |
 | **Property Naming** | Follows camelCase convention | No strict convention, but typically uses camelCase |
-| **Serialization** | Via Java's built-in serialization | Via custom JSON serialization |
-| **Change Tracking** | Optional via PropertyChangeSupport | Built-in via `IsDirty()` and `DataChanged()` |
+| **Serialization** | Via Java's built-in serialization | Via custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
+| **Change Tracking** | Optional via PropertyChangeSupport | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required | Required (ID field) |
 | **Data Structure** | Class fields | Internal map[string]string |
 | **Inheritance** | Supports class inheritance | Supports composition |
@@ -178,6 +178,20 @@ func (o *User) SetStatus(status string) *User {
 // Helper methods
 func (o *User) IsActive() bool {
     return o.Status() == "active"
+}
+
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    return &User{DataObject: *do}, nil
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 

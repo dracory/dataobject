@@ -34,11 +34,11 @@ Our DataObject implementation follows these principles:
 |---------|-------------------|---------------|
 | **Data Storage** | Explicitly defined fields with specific types | Internal map[string]string |
 | **Type Safety** | Strong static typing at compile time | Strong typing via getters/setters at runtime |
-| **Constructor** | No built-in constructors (use factory functions) | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | No built-in constructors (use factory functions) | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Direct field access or via getter/setter methods | Via explicit getter/setter methods only |
-| **Change Tracking** | Not built-in (requires custom implementation) | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not built-in (requires custom implementation) | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required (add manually if needed) | Required (ID field) |
-| **Serialization** | Via `encoding/json` and struct tags | Custom JSON serialization |
+| **Serialization** | Via `encoding/json` and struct tags | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Memory Efficiency** | More efficient for known fields | Less efficient due to map storage |
 | **Dynamic Fields** | Not supported (fields must be defined at compile time) | Supported (can add any key/value pair) |
 | **Composition** | Via struct embedding | Via struct embedding |
@@ -377,6 +377,16 @@ func NewUserFromJSON(jsonString string) (*User, error) {
     return &User{DataObject: *do}, nil
 }
 
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    
+    return &User{DataObject: *do}, nil
+}
+
 // Getters and Setters
 func (o *User) FirstName() string {
     return o.Get("first_name")
@@ -443,6 +453,11 @@ func (o *User) IsActive() bool {
 
 func (o *User) FullName() string {
     return o.FirstName() + " " + o.LastName()
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 

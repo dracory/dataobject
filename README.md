@@ -193,6 +193,18 @@ isDirty := user.IsDirty()
 // returns the changed data
 dataChanged := user.DataChanged()
 
+// mark specific columns as dirty (optional parameter)
+user.MarkAsDirty("first_name", "last_name")
+
+// mark specific columns as not dirty (optional parameter)
+user.MarkAsNotDirty("updated_at")
+
+// mark all columns as dirty (no parameters)
+user.MarkAsDirty()
+
+// mark all columns as not dirty (no parameters)
+user.MarkAsNotDirty()
+
 // returns all the data
 data := user.Data()
 ```

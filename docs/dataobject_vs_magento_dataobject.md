@@ -32,14 +32,14 @@ Our Go DataObject implementation follows these principles:
 | Feature | Magento DataObject | Go DataObject |
 |---------|-------------------|---------------|
 | **Language** | PHP | Go |
-| **Constructor** | Accepts optional data array | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | Accepts optional data array | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Magic methods (__get, __set) and explicit getters/setters | Explicit getters/setters only |
 | **Data Storage** | Internal associative array | Internal map[string]string |
-| **Change Tracking** | Not built-in | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not built-in | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required | Required (ID field) |
 | **Type Safety** | Weak typing | Strong typing via getters/setters |
 | **Method Chaining** | Supported | Supported |
-| **Serialization** | Via PHP's built-in mechanisms | Custom JSON serialization |
+| **Serialization** | Via PHP's built-in mechanisms | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Inheritance** | Used extensively in Magento | Composition preferred in Go implementation |
 
 ## Implementation Differences
@@ -178,100 +178,161 @@ package dataobject
 
 import (
     "encoding/json"
-    "github.com/dracory/uid"
 )
 
 // DataObject represents a data container with change tracking
 type DataObject struct {
     data        map[string]string
     dataChanged map[string]string
-    isDirty     bool
 }
 
 // New creates a new data object with a unique ID
 func New() *DataObject {
     o := &DataObject{}
-    o.SetID(uid.HumanUid())
+    o.SetID(generateID())
     return o
 }
 
 // NewFromData creates a new data object from existing data
 func NewFromData(data map[string]string) *DataObject {
+    if data == nil {
+        return nil
+    }
     o := &DataObject{}
     o.Hydrate(data)
+    if o.ID() == "" {
+        o.SetID(generateID())
+    }
     return o
 }
 
 // NewFromJSON creates a new data object from a JSON string
 func NewFromJSON(jsonString string) (*DataObject, error) {
-    // Implementation details omitted for brevity
-    // Validates JSON, parses it, and creates a DataObject
+    if !isValidDataObjectJSON(jsonString) {
+        return nil, errors.New("invalid json: must be a valid dataobject json object")
+    }
+    var e any
+    jsonError := json.Unmarshal([]byte(jsonString), &e)
+    if jsonError != nil {
+        return nil, jsonError
+    }
+    data := mapStringAnyToMapStringString(e.(map[string]any))
+    if data == nil {
+        return nil, errors.New("invalid data from json")
+    }
+    if data[propertyId] == "" {
+        return nil, errors.New("invalid json: missing id")
+    }
+    return NewFromData(data), nil
+}
+
+// NewFromGob creates a new data object from gob-encoded data
+func NewFromGob(gobData []byte) (*DataObject, error) {
+    var data map[string]string
+    decoder := gob.NewDecoder(bytes.NewReader(gobData))
+    err := decoder.Decode(&data)
+    if err != nil {
+        return nil, err
+    }
+    if data[propertyId] == "" {
+        return nil, errors.New("invalid gob data: missing id")
+    }
+    return NewFromData(data), nil
 }
 
 // Get returns the value for a key
 func (o *DataObject) Get(key string) string {
-    if o.data == nil {
-        return ""
-    }
-    
-    if val, ok := o.data[key]; ok {
-        return val
-    }
-    
-    return ""
+    o.Init()
+    return o.data[key]
 }
 
 // Set sets a value for a key and tracks the change
-func (o *DataObject) Set(key string, value string) *DataObject {
-    if o.data == nil {
-        o.data = map[string]string{}
-    }
-    
-    if o.dataChanged == nil {
-        o.dataChanged = map[string]string{}
-    }
-    
-    if oldValue, ok := o.data[key]; !ok || oldValue != value {
-        o.isDirty = true
-        o.dataChanged[key] = value
-    }
-    
+func (o *DataObject) Set(key string, value string) {
+    o.Init()
     o.data[key] = value
-    
-    return o
+    o.dataChanged[key] = value
 }
 
 // IsDirty returns whether the object has been modified
 func (o *DataObject) IsDirty() bool {
-    return o.isDirty
+    o.Init()
+    return len(o.dataChanged) > 0
 }
 
 // DataChanged returns the changed data
 func (o *DataObject) DataChanged() map[string]string {
+    o.Init()
     return o.dataChanged
 }
 
 // Data returns all data
 func (o *DataObject) Data() map[string]string {
+    o.Init()
     return o.data
 }
 
-// Hydrate populates the object with data
-func (o *DataObject) Hydrate(data map[string]string) *DataObject {
+// Hydrate populates the object with data without marking as dirty
+func (o *DataObject) Hydrate(data map[string]string) {
+    o.Init()
     o.data = data
-    o.isDirty = false
-    o.dataChanged = map[string]string{}
-    return o
+}
+
+// MarkAsNotDirty marks the object as not dirty
+func (o *DataObject) MarkAsNotDirty(columns ...string) {
+    o.Init()
+    if len(columns) == 0 {
+        o.dataChanged = map[string]string{}
+        return
+    }
+    for _, col := range columns {
+        delete(o.dataChanged, col)
+    }
+}
+
+// MarkAsDirty marks the object as dirty
+func (o *DataObject) MarkAsDirty(columns ...string) {
+    o.Init()
+    if len(columns) == 0 {
+        for k, v := range o.data {
+            o.dataChanged[k] = v
+        }
+        return
+    }
+    for _, col := range columns {
+        if val, exists := o.data[col]; exists {
+            o.dataChanged[col] = val
+        }
+    }
+}
+
+// ToJSON converts the DataObject to a JSON string
+func (o *DataObject) ToJSON() (string, error) {
+    jsonValue, jsonError := json.Marshal(o.data)
+    if jsonError != nil {
+        return "", jsonError
+    }
+    return string(jsonValue), nil
+}
+
+// ToGob converts the DataObject to a gob-encoded byte array
+func (o *DataObject) ToGob() ([]byte, error) {
+    var buf bytes.Buffer
+    encoder := gob.NewEncoder(&buf)
+    err := encoder.Encode(o.data)
+    if err != nil {
+        return nil, err
+    }
+    return buf.Bytes(), nil
 }
 
 // ID returns the object ID
 func (o *DataObject) ID() string {
-    return o.Get("id")
+    return o.Get(propertyId)
 }
 
 // SetID sets the object ID
-func (o *DataObject) SetID(id string) *DataObject {
-    return o.Set("id", id)
+func (o *DataObject) SetID(id string) {
+    o.Set(propertyId, id)
 }
 ```
 

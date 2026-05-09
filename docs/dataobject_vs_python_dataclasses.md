@@ -35,12 +35,12 @@ Our Go DataObject implementation follows these principles:
 | **Language** | Python | Go |
 | **Data Storage** | Class attributes with type annotations | Internal map[string]string |
 | **Type Safety** | Optional static typing with annotations | Strong typing via getters/setters |
-| **Constructor** | Auto-generated `__init__` | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | Auto-generated `__init__` | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Direct attribute access | Via explicit getter/setter methods |
 | **Immutability** | Optional with `frozen=True` | Mutable by design |
-| **Change Tracking** | Not built-in | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not built-in | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required | Required (ID field) |
-| **Serialization** | Via libraries like `dataclasses.asdict()` or third-party | Custom JSON serialization |
+| **Serialization** | Via libraries like `dataclasses.asdict()` or third-party | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Method Generation** | Auto-generates `__init__`, `__repr__`, `__eq__` | Manual implementation |
 | **Default Values** | Supported | Set in constructors |
 | **Inheritance** | Supports class inheritance | Composition-based |
@@ -198,6 +198,15 @@ func NewUserFromJSON(jsonString string) (*User, error) {
     return &User{DataObject: *do}, nil
 }
 
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    return &User{DataObject: *do}, nil
+}
+
 // Getters and Setters
 func (o *User) FirstName() string {
     return o.Get("first_name")
@@ -264,6 +273,11 @@ func (o *User) IsActive() bool {
 
 func (o *User) FullName() string {
     return o.FirstName() + " " + o.LastName()
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 

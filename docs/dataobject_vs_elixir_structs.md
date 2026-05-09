@@ -37,12 +37,12 @@ Our Go DataObject implementation follows these principles:
 | **Language Paradigm** | Functional, immutable | Imperative, mutable |
 | **Data Storage** | Named fields with compile-time checking | Internal map[string]string |
 | **Type Safety** | Optional static typing with typespecs | Strong typing via getters/setters |
-| **Constructor** | `%ModuleName{}` syntax | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | `%ModuleName{}` syntax | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Direct field access with dot notation | Via explicit getter/setter methods |
 | **Immutability** | Immutable by design | Mutable by design |
-| **Change Tracking** | Not needed (immutable) | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not needed (immutable) | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required | Required (ID field) |
-| **Serialization** | Via libraries like Jason or Poison | Custom JSON serialization |
+| **Serialization** | Via libraries like Jason or Poison | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Method Generation** | No automatic method generation | Manual implementation |
 | **Default Values** | Supported in struct definition | Set in constructors |
 | **Inheritance** | No inheritance (composition via protocols) | Composition-based |
@@ -298,6 +298,16 @@ func NewUserFromJSON(jsonString string) (*User, error) {
     return &User{DataObject: *do}, nil
 }
 
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    
+    return &User{DataObject: *do}, nil
+}
+
 // Getters and Setters
 func (o *User) FirstName() string {
     return o.Get("first_name")
@@ -364,6 +374,11 @@ func (o *User) IsActive() bool {
 
 func (o *User) FullName() string {
     return o.FirstName() + " " + o.LastName()
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 

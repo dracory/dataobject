@@ -35,12 +35,12 @@ Our Go DataObject implementation follows these principles:
 | **Language** | PHP | Go |
 | **Data Storage** | Class properties | Internal map[string]string |
 | **Type Safety** | Varies (weak in PHP 7, stronger with typed properties in PHP 8+) | Strong typing via getters/setters |
-| **Constructor** | Typically accepts all properties | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | Typically accepts all properties | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Direct or via getters/setters | Via explicit getter/setter methods |
 | **Immutability** | Optional, common in modern PHP DTOs | Mutable by design |
-| **Change Tracking** | Not typically built-in | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not typically built-in | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required (but common) | Required (ID field) |
-| **Serialization** | Via PHP's built-in functions or libraries like Symfony Serializer | Custom JSON serialization |
+| **Serialization** | Via PHP's built-in functions or libraries like Symfony Serializer | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Validation** | Often uses attributes/annotations or separate validators | Not built-in, typically handled separately |
 | **Method Chaining** | Sometimes supported | Supported by design |
 
@@ -270,6 +270,20 @@ func (o *User) SetStatus(status string) *User {
 // Helper methods
 func (o *User) IsActive() bool {
     return o.Status() == "active"
+}
+
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    return &User{DataObject: *do}, nil
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 

@@ -43,11 +43,11 @@ Our Go DataObject implementation follows these principles:
 | **Language** | Java | C# (.NET) | Go |
 | **Data Storage** | Class fields with specific types | Properties with specific types | Internal map[string]string |
 | **Type Safety** | Strong static typing | Strong static typing | Strong typing via getters/setters |
-| **Constructor** | Default and parameterized | Default and parameterized | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`) |
+| **Constructor** | Default and parameterized | Default and parameterized | Multiple constructors (`New()`, `NewFromData()`, `NewFromJSON()`, `NewFromGob()`) |
 | **Property Access** | Via getters/setters | Via property accessors | Via explicit getter/setter methods |
-| **Change Tracking** | Not built-in (frameworks may add) | Not built-in (frameworks may add) | Built-in via `IsDirty()` and `DataChanged()` |
+| **Change Tracking** | Not built-in (frameworks may add) | Not built-in (frameworks may add) | Built-in via `IsDirty()`, `DataChanged()`, `MarkAsDirty()`, `MarkAsNotDirty()` |
 | **Unique Identifier** | Not required (common practice) | Not required (common practice) | Required (ID field) |
-| **Serialization** | Via frameworks (Jackson, GSON) | Via frameworks (JSON.NET, System.Text.Json) | Custom JSON serialization |
+| **Serialization** | Via frameworks (Jackson, GSON) | Via frameworks (JSON.NET, System.Text.Json) | Custom JSON and Gob serialization (`ToJSON()`, `ToGob()`) |
 | **Inheritance** | Class-based inheritance | Class-based inheritance | Composition-based |
 | **Method Chaining** | Not typical (but possible) | Not typical (but possible) | Supported by design |
 
@@ -244,6 +244,20 @@ func (o *User) IsActive() bool {
 
 func (o *User) FullName() string {
     return o.FirstName() + " " + o.LastName()
+}
+
+// NewUserFromGob creates a user from gob-encoded data
+func NewUserFromGob(gobData []byte) (*User, error) {
+    do, err := dataobject.NewFromGob(gobData)
+    if err != nil {
+        return nil, err
+    }
+    return &User{DataObject: *do}, nil
+}
+
+// ToGob converts the user to gob-encoded bytes
+func (o *User) ToGob() ([]byte, error) {
+    return o.DataObject.ToGob()
 }
 ```
 
