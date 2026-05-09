@@ -23,8 +23,10 @@ type DataObjectInterface interface {
 	// If columns specified, marks only those columns as not dirty
 	MarkAsNotDirty(columns ...string)
 
-	// MarkAsDirty marks all current data as dirty
-	MarkAsDirty()
+	// MarkAsDirty marks the object as dirty
+	// If no columns specified, marks all fields as dirty
+	// If columns specified, marks only those columns as dirty
+	MarkAsDirty(columns ...string)
 
 	// IsDirty returns if data has been modified
 	IsDirty() bool
