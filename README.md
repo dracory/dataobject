@@ -1,6 +1,6 @@
 <img src="image.jpg" width="100%" />
 
-# Data Object <a href="https://gitpod.io/#https://github.com/dracory/dataobject" style="float:right:"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
+# Data Object
 
 A data object is a special purpose structure that is designed
 to hold data and track the changes to allow efficient 
