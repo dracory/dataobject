@@ -394,3 +394,226 @@ func Test_DataObject_IDMethods(t *testing.T) {
 		t.Errorf("Expected ID to be %s after SetID, but found %s", newID, do.ID())
 	}
 }
+
+func Test_DataObject_MarkAsDirty(t *testing.T) {
+	t.Run("Mark all fields as dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.MarkAsNotDirty() // Clear initial ID setting
+
+		// Set some data
+		do.Set("key1", "value1")
+		do.Set("key2", "value2")
+		do.MarkAsNotDirty() // Clear dirty flags
+
+		// Verify not dirty
+		if do.IsDirty() {
+			t.Error("Expected object to not be dirty before MarkAsDirty, but it was")
+		}
+
+		// Mark all fields as dirty
+		do.MarkAsDirty()
+
+		// Verify all fields are marked as dirty
+		if !do.IsDirty() {
+			t.Error("Expected object to be dirty after MarkAsDirty, but it was not")
+		}
+
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 3 { // key1, key2, id
+			t.Errorf("Expected dataChanged to have 3 entries after MarkAsDirty, but found %d", len(dataChanged))
+		}
+
+		if dataChanged["key1"] != "value1" {
+			t.Errorf("Expected dataChanged[\"key1\"] to be \"value1\", but found %s", dataChanged["key1"])
+		}
+
+		if dataChanged["key2"] != "value2" {
+			t.Errorf("Expected dataChanged[\"key2\"] to be \"value2\", but found %s", dataChanged["key2"])
+		}
+	})
+
+	t.Run("Mark specific columns as dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.MarkAsNotDirty() // Clear initial ID setting
+
+		// Set some data
+		do.Set("key1", "value1")
+		do.Set("key2", "value2")
+		do.Set("key3", "value3")
+		do.MarkAsNotDirty() // Clear dirty flags
+
+		// Mark only specific columns as dirty
+		do.MarkAsDirty("key1", "key3")
+
+		// Verify object is dirty
+		if !do.IsDirty() {
+			t.Error("Expected object to be dirty after MarkAsDirty with columns, but it was not")
+		}
+
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 2 { // key1 and key3 only
+			t.Errorf("Expected dataChanged to have 2 entries after MarkAsDirty with columns, but found %d", len(dataChanged))
+		}
+
+		if dataChanged["key1"] != "value1" {
+			t.Errorf("Expected dataChanged[\"key1\"] to be \"value1\", but found %s", dataChanged["key1"])
+		}
+
+		if dataChanged["key2"] != "" {
+			t.Errorf("Expected dataChanged[\"key2\"] to be empty (not marked as dirty), but found %s", dataChanged["key2"])
+		}
+
+		if dataChanged["key3"] != "value3" {
+			t.Errorf("Expected dataChanged[\"key3\"] to be \"value3\", but found %s", dataChanged["key3"])
+		}
+	})
+
+	t.Run("Mark non-existent columns as dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.MarkAsNotDirty() // Clear initial ID setting
+
+		// Set some data
+		do.Set("key1", "value1")
+		do.MarkAsNotDirty() // Clear dirty flags
+
+		// Try to mark non-existent columns as dirty
+		do.MarkAsDirty("non_existent_key", "another_fake_key")
+
+		// Verify object is not dirty (non-existent keys should be ignored)
+		if do.IsDirty() {
+			t.Error("Expected object to not be dirty when marking non-existent columns, but it was")
+		}
+
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 0 {
+			t.Errorf("Expected dataChanged to be empty when marking non-existent columns, but found %d entries", len(dataChanged))
+		}
+	})
+
+	t.Run("MarkAsDirty after Hydrate", func(t *testing.T) {
+		do := NewDataObject()
+		do.MarkAsNotDirty() // Clear initial ID setting
+
+		// Hydrate with data
+		data := map[string]string{
+			"key1": "value1",
+			"key2": "value2",
+		}
+		do.Hydrate(data)
+
+		// Verify not dirty after hydrate
+		if do.IsDirty() {
+			t.Error("Expected object to not be dirty after Hydrate, but it was")
+		}
+
+		// Mark all as dirty
+		do.MarkAsDirty()
+
+		// Verify all fields are marked as dirty
+		if !do.IsDirty() {
+			t.Error("Expected object to be dirty after MarkAsDirty, but it was not")
+		}
+
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 2 { // key1, key2
+			t.Errorf("Expected dataChanged to have 2 entries, but found %d", len(dataChanged))
+		}
+	})
+}
+
+func Test_DataObject_MarkAsNotDirty(t *testing.T) {
+	t.Run("Mark all columns as not dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.Set("key1", "value1")
+		do.Set("key2", "value2")
+
+		// Verify dirty
+		if !do.IsDirty() {
+			t.Error("Expected object to be dirty before MarkAsNotDirty, but it was not")
+		}
+
+		// Mark all as not dirty
+		do.MarkAsNotDirty()
+
+		// Verify not dirty
+		if do.IsDirty() {
+			t.Error("Expected object to not be dirty after MarkAsNotDirty, but it was")
+		}
+
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 0 {
+			t.Errorf("Expected dataChanged to be empty after MarkAsNotDirty, but found %d entries", len(dataChanged))
+		}
+	})
+
+	t.Run("Mark specific columns as not dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.MarkAsNotDirty() // Clear initial ID setting
+
+		// Set some data
+		do.Set("key1", "value1")
+		do.Set("key2", "value2")
+		do.Set("key3", "value3")
+
+		// Verify all are dirty
+		dataChanged := do.DataChanged()
+		if len(dataChanged) != 3 { // key1, key2, key3
+			t.Errorf("Expected dataChanged to have 3 entries before MarkAsNotDirty, but found %d", len(dataChanged))
+		}
+
+		// Mark only specific columns as not dirty
+		do.MarkAsNotDirty("key1", "key3")
+
+		// Verify object is still dirty (key2 is still dirty)
+		if !do.IsDirty() {
+			t.Error("Expected object to still be dirty after marking some columns as not dirty, but it was not")
+		}
+
+		dataChanged = do.DataChanged()
+		if len(dataChanged) != 1 { // only key2
+			t.Errorf("Expected dataChanged to have 1 entry after MarkAsNotDirty with columns, but found %d", len(dataChanged))
+		}
+
+		if dataChanged["key1"] != "" {
+			t.Errorf("Expected dataChanged[\"key1\"] to be empty (marked as not dirty), but found %s", dataChanged["key1"])
+		}
+
+		if dataChanged["key2"] != "value2" {
+			t.Errorf("Expected dataChanged[\"key2\"] to be \"value2\", but found %s", dataChanged["key2"])
+		}
+
+		if dataChanged["key3"] != "" {
+			t.Errorf("Expected dataChanged[\"key3\"] to be empty (marked as not dirty), but found %s", dataChanged["key3"])
+		}
+	})
+
+	t.Run("Mark non-existent columns as not dirty", func(t *testing.T) {
+		do := NewDataObject()
+		do.Set("key1", "value1")
+
+		// Verify dirty
+		if !do.IsDirty() {
+			t.Error("Expected object to be dirty before MarkAsNotDirty, but it was not")
+		}
+
+		dataChanged := do.DataChanged()
+		initialCount := len(dataChanged) // key1 + id
+
+		// Try to mark non-existent columns as not dirty
+		do.MarkAsNotDirty("non_existent_key", "another_fake_key")
+
+		// Verify object is still dirty (key1 and id are still dirty)
+		if !do.IsDirty() {
+			t.Error("Expected object to still be dirty after marking non-existent columns as not dirty, but it was not")
+		}
+
+		dataChanged = do.DataChanged()
+		if len(dataChanged) != initialCount { // key1 and id are still there
+			t.Errorf("Expected dataChanged to have %d entries after marking non-existent columns as not dirty, but found %d", initialCount, len(dataChanged))
+		}
+
+		if dataChanged["key1"] != "value1" {
+			t.Errorf("Expected dataChanged[\"key1\"] to still be \"value1\", but found %s", dataChanged["key1"])
+		}
+	})
+}
