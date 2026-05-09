@@ -19,7 +19,12 @@ type DataObjectInterface interface {
 	DataChanged() map[string]string
 
 	// MarkAsNotDirty marks the object as not dirty
-	MarkAsNotDirty()
+	// If no columns specified, marks all fields as not dirty
+	// If columns specified, marks only those columns as not dirty
+	MarkAsNotDirty(columns ...string)
+
+	// MarkAsDirty marks all current data as dirty
+	MarkAsDirty()
 
 	// IsDirty returns if data has been modified
 	IsDirty() bool

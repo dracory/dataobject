@@ -46,8 +46,25 @@ func (do *DataObject) DataChanged() map[string]string {
 }
 
 // MarkAsNotDirty marks the object as not dirty
-func (do *DataObject) MarkAsNotDirty() {
-	do.dataChanged = map[string]string{}
+// If no columns specified, clears all dirty flags
+// If columns specified, clears dirty flags only for those columns
+func (do *DataObject) MarkAsNotDirty(columns ...string) {
+	do.Init()
+	if len(columns) == 0 {
+		do.dataChanged = map[string]string{}
+	} else {
+		for _, col := range columns {
+			delete(do.dataChanged, col)
+		}
+	}
+}
+
+// MarkAsDirty marks all current data as dirty
+func (do *DataObject) MarkAsDirty() {
+	do.Init()
+	for k, v := range do.data {
+		do.dataChanged[k] = v
+	}
 }
 
 // IsDirty returns if data has been modified
