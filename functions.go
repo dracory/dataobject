@@ -5,13 +5,12 @@ import (
 	"strconv"
 	"strings"
 	"unsafe"
-
-	"github.com/dracory/uid"
+	"uuid"
 )
 
 // generateID generates a new ID for a data object
 func generateID() string {
-	return uid.HumanUid()
+	return uuid.NewV7().String()
 }
 
 // isDataObjectJSON checks if the passed JSON string is a valid DataObject JSON object

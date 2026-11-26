@@ -50,7 +50,7 @@ package models
 
 import (
 	"github.com/dracory/dataobject"
-	"github.com/dracory/uid"
+	"uuid"
 	"github.com/golang-module/carbon/v2"
 )
 
@@ -64,7 +64,7 @@ type User struct {
 // NewUser instantiates a new user
 func NewUser() *User {
 	o := &User{}
-	o.SetID(uid.HumanUid())
+	o.SetID(uuid.NewV7().String())
 	o.SetStatus("active")
 	o.SetCreatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))
 	o.SetUpdatedAt(carbon.Now(carbon.UTC).ToDateTimeString(carbon.UTC))

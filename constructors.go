@@ -11,7 +11,7 @@ import (
 //
 // Business logic:
 // - instantiates a new data object
-// - generates an ID, using uid.HumanUid()
+// - generates an ID, using uuid.NewV7()
 //
 // Note! The object is marked as dirty, as ID is set
 //
@@ -74,7 +74,7 @@ func NewFromJSON(jsonString string) (*DataObject, error) {
 // Business logic:
 // - instantiates a new data object
 // - hydrates it with the passed data
-// - generates an ID, using uid.HumanUid() if missing (but is marked as dirty)
+// - generates an ID, using uuid.NewV7() if missing (but is marked as dirty)
 //
 // Returns:
 // - a new data object

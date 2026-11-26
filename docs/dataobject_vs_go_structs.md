@@ -73,7 +73,7 @@ type User struct {
 func NewUser() *User {
     now := time.Now().UTC()
     return &User{
-        ID:        uid.HumanUid(),
+        ID:        uuid.NewV7().String(),
         Status:    "active",
         CreatedAt: now,
         UpdatedAt: now,
@@ -198,7 +198,7 @@ type User struct {
 func NewUser() *User {
     now := time.Now().UTC()
     return &User{
-        ID:            uid.HumanUid(),
+        ID:            uuid.NewV7().String(),
         Status:        "active",
         CreatedAt:     now,
         UpdatedAt:     now,
@@ -341,7 +341,7 @@ package models
 
 import (
     "github.com/dracory/dataobject"
-    "github.com/dracory/uid"
+    "uuid"
     "time"
 )
 
@@ -353,7 +353,7 @@ type User struct {
 // NewUser instantiates a new user
 func NewUser() *User {
     o := &User{}
-    o.SetID(uid.HumanUid())
+    o.SetID(uuid.NewV7().String())
     o.SetStatus("active")
     o.SetCreatedAt(time.Now().UTC().Format(time.RFC3339))
     o.SetUpdatedAt(time.Now().UTC().Format(time.RFC3339))
