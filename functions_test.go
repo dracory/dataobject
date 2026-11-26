@@ -2,6 +2,8 @@ package dataobject
 
 import (
 	"testing"
+
+	"uuid"
 )
 
 func TestToString(t *testing.T) {
@@ -248,5 +250,18 @@ func Test_generateID(t *testing.T) {
 		if uid1 == uid2 {
 			t.Error("generateID() generated the same ID twice")
 		}
+	}
+}
+
+func TestGenerateIDUsesUUIDv7(t *testing.T) {
+	id := generateID()
+
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		t.Fatalf("generateID() generated an invalid UUID: %v", err)
+	}
+
+	if parsed[6]>>4 != 7 {
+		t.Errorf("generateID() generated UUID version %d, expected version 7", parsed[6]>>4)
 	}
 }
