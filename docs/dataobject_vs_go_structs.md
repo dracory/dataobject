@@ -340,9 +340,10 @@ func (u *User) ToMap() map[string]string {
 package models
 
 import (
-    "github.com/dracory/dataobject"
-    "uuid"
     "time"
+    "uuid"
+
+    "github.com/dracory/dataobject"
 )
 
 // User is a data object

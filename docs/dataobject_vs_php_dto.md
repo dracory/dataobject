@@ -206,8 +206,9 @@ final class UserDTO implements JsonSerializable
 package models
 
 import (
-    "github.com/dracory/dataobject"
     "uuid"
+
+    "github.com/dracory/dataobject"
 )
 
 // User is a data object

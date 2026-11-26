@@ -49,8 +49,9 @@ Optional ORM-like relationship methods are also included. Use these with caution
 package models
 
 import (
-	"github.com/dracory/dataobject"
 	"uuid"
+
+	"github.com/dracory/dataobject"
 	"github.com/golang-module/carbon/v2"
 )
 
